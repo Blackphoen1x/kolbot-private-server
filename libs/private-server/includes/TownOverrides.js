@@ -6,6 +6,7 @@
 
 include("private-server/config/townConfig.js");
 
+
 const TownModesFile = {
     path: "libs/private-server/data/townModes.json",
 
@@ -389,7 +390,12 @@ Town.setTownMode = function () {
         do {
             if (townAreas.includes(object.area) && object.name &&
                 (barrierClassIdList.includes(object.classid) || containers.includes(object.name.toLowerCase()))) {
-                aroundBarrierUnits.push(Misc.clone(object));
+                const newObject = Misc.clone(object);
+                if (me.act === 1) {
+                    newObject.x -= this.act[0].fire.x;
+                    newObject.y -= this.act[0].fire.y;
+                }
+                aroundBarrierUnits.push(newObject);
             }
         } while (object.getNext());
     }
@@ -519,7 +525,10 @@ Town.kickBarriers = function (maxKickNumber) {
                 && getDistance(me.x, me.y, unit.x, unit.y) <= range
                 && (barrierClassIdList.includes(unit.classid) || containers.includes(unit.name.toLowerCase()))
                 && keyBarrierCoords.find(keyBarrierCoord => {
-                    return getDistance(unit.x, unit.y, keyBarrierCoord[0], keyBarrierCoord[1]) <= 6
+                    if (me.act === 1) {
+                        return getDistance(unit.x, unit.y, this.act[0].fire.x + keyBarrierCoord[0], this.act[0].fire.y + keyBarrierCoord[1]) <= 6;
+                    }
+                    return getDistance(unit.x, unit.y, keyBarrierCoord[0], keyBarrierCoord[1]) <= 6;
                 })) {
                 unitList.push(copyUnit(unit));
             }
@@ -619,7 +628,11 @@ Town.kickBarrier = function (unit) {
 Town.resetSpotsByConfig = function (spots) {
     for (let key in spots) {
         if (!this.act[me.act - 1].resetSpot[key]) {
-            this.act[me.act - 1].spot[key] = spots[key];
+            if (me.act === 1) {
+                this.act[me.act - 1].spot[key] = [this.act[0].fire.x + spots[key][0], this.act[0].fire.y + spots[key][1]];
+            } else {
+                this.act[me.act - 1].spot[key] = spots[key];
+            }
             this.act[me.act - 1].resetSpot[key] = true;
             print("reset " + key);
         }

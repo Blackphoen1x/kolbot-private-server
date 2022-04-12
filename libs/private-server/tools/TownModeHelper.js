@@ -132,7 +132,14 @@ function addAroundBarrierUnits() {
                 const addedBarrier = townBarrierUnits.find(barrier => {
                     return barrier.gid === object.gid;
                 });
-                !addedBarrier && townBarrierUnits.push(Misc.clone(object));
+                if (!addedBarrier) {
+                    const newObject = Misc.clone(object);
+                    if (me.act === 1) {
+                        newObject.x -= fire.x;
+                        newObject.y -= fire.y;
+                    }
+                    townBarrierUnits.push(newObject);
+                }
             }
         } while (object.getNext());
     }
