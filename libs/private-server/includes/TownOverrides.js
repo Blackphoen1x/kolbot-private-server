@@ -178,6 +178,72 @@ Town.initialize = function () {
     return true;
 };
 
+Town.getCorpse = function () {
+    if (!this.act[me.act - 1].initialized) {
+        this.initialize();
+    }
+
+    var i, corpse, gid,
+        corpseList = [],
+        timer = getTickCount();
+
+    // No equipped items - high chance of dying in last game, force retries
+    if (!me.getItem(-1, 1)) {
+        for (i = 0; i < 5; i += 1) {
+            corpse = getUnit(0, me.name, 17);
+
+            if (corpse) {
+                break;
+            }
+
+            delay(500);
+        }
+    } else {
+        corpse = getUnit(0, me.name, 17);
+    }
+
+    if (!corpse) {
+        return true;
+    }
+
+    do {
+        if (corpse.dead && corpse.name === me.name && (getDistance(me.x, me.y, corpse.x, corpse.y) <= 20 || me.inTown)) {
+            corpseList.push(copyUnit(corpse));
+        }
+    } while (corpse.getNext());
+
+    while (corpseList.length > 0) {
+        if (me.dead) {
+            return false;
+        }
+
+        gid = corpseList[0].gid;
+
+        Pather.moveToUnit(corpseList[0]);
+        Misc.click(0, 0, corpseList[0]);
+        delay(500);
+
+        if (getTickCount() - timer > 3000) {
+            Pather.moveTo(me.x + rand(-1, 1) * 4, me.y + rand(-1, 1) * 4);
+        }
+
+        if (getTickCount() - timer > 30000) {
+            D2Bot.printToConsole("Failed to get corpse, stopping.", 9);
+            D2Bot.stop();
+        }
+
+        if (!getUnit(0, -1, -1, gid)) {
+            corpseList.shift();
+        }
+    }
+
+    if (me.gametype === 0) {
+        this.checkShard();
+    }
+
+    return true;
+};
+
 Town.addExtraSpots = function () {
     const extraSpots = townConfig["act" + me.act.toString()].extraSpots;
     for (let key in extraSpots) {
@@ -501,8 +567,18 @@ Town.getNearestSpot = function (unit) {
     return nearestSpot.spot;
 };
 
-Town.kickBarriers = function (maxKickNumber) {
+Town.keyBarrierSpot = function (x, y, range) {
+    range = range || 4;
     const keyBarrierCoords = this.act[me.act - 1].keyBarrierCoords;
+    return keyBarrierCoords.find(keyBarrierCoord => {
+        if (me.act === 1) {
+            return getDistance(x, y, this.act[0].fire.x + keyBarrierCoord[0], this.act[0].fire.y + keyBarrierCoord[1]) <= range;
+        }
+        return getDistance(x, y, keyBarrierCoord[0], keyBarrierCoord[1]) <= range;
+    })
+};
+
+Town.kickBarriers = function (maxKickNumber) {
     const range = 8;
     const barrierClassIdList = [
         4, 7, 9, 46, 208, 209, 454
@@ -521,15 +597,10 @@ Town.kickBarriers = function (maxKickNumber) {
     let unit = getUnit(2);
     if (unit) {
         do {
-            if (townAreas.includes(unit.area) && unit.name && unit.mode === 0
-                && getDistance(me.x, me.y, unit.x, unit.y) <= range
+            if (getDistance(me.x, me.y, unit.x, unit.y) <= range &&
+                unit.mode === 0 && townAreas.includes(unit.area) && unit.name
                 && (barrierClassIdList.includes(unit.classid) || containers.includes(unit.name.toLowerCase()))
-                && keyBarrierCoords.find(keyBarrierCoord => {
-                    if (me.act === 1) {
-                        return getDistance(unit.x, unit.y, this.act[0].fire.x + keyBarrierCoord[0], this.act[0].fire.y + keyBarrierCoord[1]) <= 6;
-                    }
-                    return getDistance(unit.x, unit.y, keyBarrierCoord[0], keyBarrierCoord[1]) <= 6;
-                })) {
+                && this.keyBarrierSpot(unit.x, unit.y, 5)) {
                 unitList.push(copyUnit(unit));
             }
         } while (unit.getNext());
@@ -799,6 +870,5 @@ Town.visitTown = function () {
 
     return true;
 };
-
 
 

@@ -270,7 +270,7 @@ Pather.walkTo = function (x, y, minDist) {
                             y: Math.round(Math.sin(angle + angles[i]) * 5 + me.y)
                         };
 
-                        if (Attack.validSpot(whereToClick.x, whereToClick.y)) {
+                        if (Town.keyBarrierSpot(whereToClick.x, whereToClick.y) || Attack.validSpot(whereToClick.x, whereToClick.y)) {
                             Misc.click(0, 0, whereToClick.x, whereToClick.y);
 
                             tick = getTickCount();
@@ -619,3 +619,4 @@ Pather.moveToExit = function (targetArea, use, clearPath) {
 
     return true;
 };
+
