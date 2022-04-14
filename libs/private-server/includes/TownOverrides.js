@@ -283,6 +283,9 @@ Town.resetSpotByUnit = function (spot) {
     let destiUnit;
     if (spot && !this.act[me.act - 1].resetSpot[spot]) {
         switch (spot) {
+            case "portal": // A5 red portal
+                return true;
+                break;
             case "portalspot":
                 destiUnit = getUnit(2, 59);
                 if (destiUnit) {
@@ -359,7 +362,7 @@ Town.moveToSpot = function (spot) {
             possibleTownModes = this.getPossibleTownModes();
             if (possibleTownModes.length > 0) {
                 this.showPossibleTownModes(possibleTownModes);
-                this.takeTownModeAction(possibleTownModes[0], Town.targetSpot, i);
+                this.takeTownModeAction(possibleTownModes[0], from, Town.targetSpot, i);
             } else {
                 this.changeTownModeHookText("No matched townMode");
                 Pather.moveTo(townSpot[i], townSpot[i + 1], 3, false, false, true);
@@ -496,7 +499,7 @@ Town.setTownMode = function () {
     return possibleTownModesChanged;
 };
 
-Town.takeTownModeAction = function (townMode, spot, townSpotIndex) {
+Town.takeTownModeAction = function (townMode, from, spot, townSpotIndex) {
     print("takeTownModeAction");
     const config = townConfig["act" + me.act.toString()][townMode.name];
     let actionTownModeChanged;
@@ -505,7 +508,6 @@ Town.takeTownModeAction = function (townMode, spot, townSpotIndex) {
         actionTownModeChanged = true;
     }
     actionTownModeChanged && this.resetSpotsByConfig(config.resetSpots) && this.setKeyBarrierCoords(config.keyBarrierCoords);
-    const from = this.getNearestSpot();
     const to = Town.targetSpot;
     const guidedAstarPathes = config.guidedAstar;
     let reverse;
@@ -527,9 +529,14 @@ Town.takeTownModeAction = function (townMode, spot, townSpotIndex) {
         reverse && flags.reverse();
 
         for (let flag of flags) {
-            if (!Pather.moveTo(flag[0], flag[1], 3, false, false, true)) {
-                // 说明执行指导A*路线时，townMode或spot数据有变，直接结束函数
-                return true;
+            if (me.act === 1) {
+                if (!Pather.moveTo(this.act[0].fire.x + flag[0], this.act[0].fire.y + flag[1], 3, false, false, true)) {
+                    return true;
+                }
+            } else {
+                if (!Pather.moveTo(flag[0], flag[1], 3, false, false, true)) {
+                    return true;
+                }
             }
         }
     }
@@ -645,12 +652,13 @@ Town.kickBarriers = function (maxKickNumber) {
 
     let kickNumber = 0;
 
-    while (kickNumber < maxKickNumber && unitList.length > 0) {
-        unitList.sort(Sort.units);
-
-        unit = unitList.shift();
-
-        this.kickBarrier(unit) && kickNumber++;
+    for (let i = 0; i < 3; i++) {
+        for (let unit of unitList) {
+            this.kickBarrier(unit) && kickNumber++;
+            if (kickNumber >= maxKickNumber) {
+                return true;
+            }
+        }
     }
 
     return true;
@@ -680,13 +688,11 @@ Town.kickBarrier = function (unit) {
 
         tick = getTickCount();
 
-        while (getTickCount() - tick < 1000) {
-            if (unit.mode) {
-                return true;
-            }
-
-            delay(10);
+        if (unit.mode) {
+            return true;
         }
+
+        delay(10);
     }
 
     if (!me.idle) {
