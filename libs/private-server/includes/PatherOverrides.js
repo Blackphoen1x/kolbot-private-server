@@ -13,7 +13,6 @@ Pather.moveTo = function (x, y, retry, clearPath, pop, resetSpots) {
         node = {x: x, y: y},
         fail = 0;
     let actionTownModeChanged;
-    let spotsResetByUnit;
 
     for (i = 0; i < this.cancelFlags.length; i += 1) {
         if (getUIFlag(this.cancelFlags[i])) {
@@ -131,11 +130,11 @@ Pather.moveTo = function (x, y, retry, clearPath, pop, resetSpots) {
                     Misc.townCheck();
                 } else {
                     if (resetSpots) {
-                        spotsResetByUnit = Town.resetSpotsByUnit();
+                        Town.resetSpotsByUnit();
                     }
                     if (Town.getPossibleTownModes().length !== 1) {
                         actionTownModeChanged = Town.setTownMode();
-                        if (actionTownModeChanged || spotsResetByUnit) {
+                        if (actionTownModeChanged) {
                             path = [];
                         }
                     }
