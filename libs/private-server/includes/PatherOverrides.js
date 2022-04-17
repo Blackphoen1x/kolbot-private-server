@@ -289,8 +289,12 @@ Pather.walkTo = function (x, y, minDist) {
             }
 
         // Wait until we're done walking - idle or dead
+        let tick = getTickCount();
         while (getDistance(me.x, me.y, x, y) > minDist && me.mode !== 1 && me.mode !== 5 && !me.dead) {
             delay(10);
+            if (me.inTown && getTickCount() - tick >= 5 * 1e3 && !me.idle && Misc.click(0, 0, me.x, me.y)) {
+                tick = getTickCount();
+            }
         }
 
         if (attemptCount >= 3) {
