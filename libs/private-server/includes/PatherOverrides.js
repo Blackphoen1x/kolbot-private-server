@@ -12,7 +12,7 @@ Pather.moveTo = function (x, y, retry, clearPath, pop, resetSpots) {
     var i, path, adjustedNode, cleared,
         node = {x: x, y: y},
         fail = 0;
-    let possibleTownModesChanged;
+    let actionTownModeChanged;
     let spotsResetByUnit;
 
     for (i = 0; i < this.cancelFlags.length; i += 1) {
@@ -134,8 +134,8 @@ Pather.moveTo = function (x, y, retry, clearPath, pop, resetSpots) {
                         spotsResetByUnit = Town.resetSpotsByUnit();
                     }
                     if (Town.getPossibleTownModes().length !== 1) {
-                        possibleTownModesChanged = Town.setTownMode();
-                        if (possibleTownModesChanged || spotsResetByUnit) {
+                        actionTownModeChanged = Town.setTownMode();
+                        if (actionTownModeChanged || spotsResetByUnit) {
                             path = [];
                         }
                     }

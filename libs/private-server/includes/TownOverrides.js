@@ -273,10 +273,13 @@ Town.changeTownModeHookText = function (text) {
 };
 
 Town.resetSpotsByUnit = function () {
+    let spotsResetByUnit;
     for (let spot in this.act[me.act - 1].spot) {
-        this.resetSpotByUnit(spot)
+        if (this.resetSpotByUnit(spot)) {
+            spotsResetByUnit = true;
+        }
     }
-    return true;
+    return spotsResetByUnit;
 };
 
 Town.resetSpotByUnit = function (spot) {
@@ -284,7 +287,7 @@ Town.resetSpotByUnit = function (spot) {
     if (spot && !this.act[me.act - 1].resetSpot[spot]) {
         switch (spot) {
             case "portal": // A5 red portal
-                return true;
+                return false;
                 break;
             case "portalspot":
                 destiUnit = getUnit(2, 59);
@@ -295,7 +298,7 @@ Town.resetSpotByUnit = function (spot) {
                         Town.targetSpot = nearestSpotToPortal;
                         print("to " + nearestSpotToPortal);
                     }
-                    return true;
+                    return false;
                 }
                 break;
             case "cain":
@@ -308,11 +311,14 @@ Town.resetSpotByUnit = function (spot) {
                 destiUnit = getUnit(1, spot) || getUnit(2, spot);
                 break;
         }
-        if (!!destiUnit && this.act[me.act - 1].spot[spot][0] !== destiUnit.x && this.act[me.act - 1].spot[spot][1] !== destiUnit.y) {
-            this.act[me.act - 1].spot[spot] = [destiUnit.x, destiUnit.y];
+        if (!!destiUnit) {
+            if (getDistance(this.act[me.act - 1].spot[spot][0], this.act[me.act - 1].spot[spot][1], destiUnit.x, destiUnit.y) > 7) {
+                this.act[me.act - 1].spot[spot] = [destiUnit.x, destiUnit.y];
+                this.act[me.act - 1].resetSpot[spot] = true;
+                print("reset " + spot);
+                return true;
+            }
             this.act[me.act - 1].resetSpot[spot] = true;
-            print("reset " + spot);
-            return true;
         }
     }
     return false;
@@ -358,6 +364,9 @@ Town.moveToSpot = function (spot) {
         while (getDistance(me, townSpot[i], townSpot[i + 1]) > 6) {
             if (getTickCount() - tick > 60 * 1e3) {
                 throw new Error("Failed to move to spot from: " + from + ", to: " + Town.targetSpot + " in possibleTownModes:" + this.townModeHooks[0].text);
+            }
+            if (!me.idle) {
+                Misc.click(0, 0, me.x, me.y); // Click to stop walking in case we got stuck
             }
             possibleTownModes = this.getPossibleTownModes();
             if (possibleTownModes.length > 0) {
@@ -432,7 +441,9 @@ Town.showPossibleTownModes = function (possibleTownModes) {
 Town.setTownMode = function () {
     const actTownModes = this.townModes[me.act - 1];
     if (actTownModes.length === 0) {
-        throw new Error("Please save a townMode first.");
+        // throw new Error("Please save a townMode first.");
+        D2Bot.D2Bot.printToConsole("No TownModes found in act" + me.act.toString() + ".", 9);
+        return false;
     }
 
     const formerLength = this.getPossibleTownModes().length;
@@ -493,21 +504,24 @@ Town.setTownMode = function () {
     const possibleTownModes = this.getPossibleTownModes();
     const laterLength = possibleTownModes.length;
     const possibleTownModesChanged = laterLength !== formerLength;
+    let actionTownModeChanged;
+    if (typeof this.act[me.act - 1].actionTownMode === "undefined" || this.act[me.act - 1].actionTownMode.name !== possibleTownModes[0].name) {
+        actionTownModeChanged = true;
+        this.act[me.act - 1].actionTownMode = possibleTownModes[0];
+        const config = townConfig["act" + me.act.toString()][this.act[me.act - 1].actionTownMode.name];
+        this.resetSpotsByConfig(config.resetSpots) && this.setKeyBarrierCoords(config.keyBarrierCoords);
+    } else {
+        actionTownModeChanged = false;
+    }
 
     possibleTownModesChanged && this.showPossibleTownModes(possibleTownModes);
 
-    return possibleTownModesChanged;
+    return actionTownModeChanged;
 };
 
-Town.takeTownModeAction = function (townMode, from, spot, townSpotIndex) {
+Town.takeTownModeAction = function (actionTownMode, from, spot, townSpotIndex) {
     print("takeTownModeAction");
-    const config = townConfig["act" + me.act.toString()][townMode.name];
-    let actionTownModeChanged;
-    if (typeof this.act[me.act - 1].actionTownMode === "undefined" || this.act[me.act - 1].actionTownMode !== townMode) {
-        this.act[me.act - 1].actionTownMode = townMode;
-        actionTownModeChanged = true;
-    }
-    actionTownModeChanged && this.resetSpotsByConfig(config.resetSpots) && this.setKeyBarrierCoords(config.keyBarrierCoords);
+    const config = townConfig["act" + me.act.toString()][actionTownMode.name];
     const to = Town.targetSpot;
     const guidedAstarPathes = config.guidedAstar;
     let reverse;
