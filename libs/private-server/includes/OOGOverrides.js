@@ -13,10 +13,6 @@ ControlAction.changeRealm = function (realmNumber) {
                 case 0:
                     break;
                 case 1:	// Lobby
-                    if (me.realm !== formerRealm) {
-                        complete = true;
-                        break;
-                    }
                     ControlAction.click(6, 693, 490, 80, 20); // quit
                     break;
                 case 2: // Waiting In Line
@@ -43,22 +39,14 @@ ControlAction.changeRealm = function (realmNumber) {
                         break;
                     }
 
-                    if (getLocation() === 12 && me.realm === formerRealm) {
-                        ControlAction.click(6, 609, 113, 182, 30);
-                        locationTimeout(2000, location);
+                    if (getLocation() === 12) {
+                        if (me.realm === formerRealm) {
+                            ControlAction.click(6, 609, 113, 182, 30);
+                            locationTimeout(2000, location);
+                        } else {
+                            complete = true;
+                        }
                         break;
-                    }
-
-                    if (firstLogin && getLocation() === 9) { // multiple realm botting fix in case of R/D or disconnect
-                        ControlAction.click(6, 33, 572, 128, 35);
-                    }
-
-                    D2Bot.updateStatus("Logging In");
-
-                    try {
-                        login(me.profile);
-                    } catch (e) {
-                        print(e + " " + getLocation());
                     }
 
                     break;
@@ -382,3 +370,4 @@ ControlAction.changeRealm = function (realmNumber) {
     me.blockMouse = false;
     return true;
 };
+

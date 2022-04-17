@@ -484,6 +484,8 @@ function main() {
 
                 me.overhead("begin");
 
+                Town.move("stash");
+
                 switch (pickItems()) {
                     // done picking, tell the master to leave game and kill mule profile
                     case "done":
