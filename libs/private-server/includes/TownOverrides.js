@@ -377,6 +377,7 @@ Town.moveToSpot = function (spot) {
                 Pather.moveTo(townSpot[i], townSpot[i + 1], 3, false, false, true);
             }
             townSpot = this.act[me.act - 1].spot[Town.targetSpot];
+            Packet.flash(me.gid);
         }
 
         this.changeTownModeHookText("");
