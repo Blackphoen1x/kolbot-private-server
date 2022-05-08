@@ -166,23 +166,23 @@ function checkExist(save) {
     let barrierList;
 
     loop1:
-        for (let townMode of actTownModes) {
-            barrierList = townMode.barrierList;
-            for (let barrierUnit of townBarrierUnits) {
-                const matchedBarrier = barrierList.find(barrier => {
-                    for (let key of ["classid", "x", "y"]) {
-                        if (barrier[key] !== barrierUnit[key]) {
-                            return false;
-                        }
+    for (let townMode of actTownModes) {
+        barrierList = townMode.barrierList;
+        for (let barrierUnit of townBarrierUnits) {
+            const matchedBarrier = barrierList.find(barrier => {
+                for (let key of ["classid", "x", "y"]) {
+                    if (barrier[key] !== barrierUnit[key]) {
+                        return false;
                     }
-                    return true;
-                });
-                if (!matchedBarrier) {
-                    continue loop1;
                 }
+                return true;
+            });
+            if (!matchedBarrier) {
+                continue loop1;
             }
-            Town.act[me.act - 1].possibleTownModes.push(townMode);
         }
+        Town.act[me.act - 1].possibleTownModes.push(townMode);
+    }
 
     const possibleTownModes = getPossibleTownModes();
 
@@ -214,11 +214,6 @@ function genBarrierList() {
             x: barrierUnit.x,
             y: barrierUnit.y
         };
-
-        if (me.act === 1) {
-            newBarrier.x -= fire.x;
-            newBarrier.y -= fire.y;
-        }
 
         const repeatBarrier = barrierList.find(barrier => {
             for (let key in newBarrier) {
@@ -405,8 +400,6 @@ function showInfo() {
     showUnitNearestToCursor("object");
     showUnitNearestToCursor("NPC");
     showCursorItem();
-    // print(Pather.checkSpot(mouse.x, mouse.y, 0x1, false));
-    // print(Pather.checkSpot(mouse.x, mouse.y, 0x4, false));
 }
 
 function keyEvent(key) {
@@ -430,7 +423,7 @@ function keyEvent(key) {
             break;
 
         case 115: // F4
-            removeTownMode();
+            // removeTownMode();
             break;
 
         case 116: // F5
