@@ -344,8 +344,9 @@ function locationAction(location) {
 
                 if (!firstLogin) {
                     firstLogin = true;
-                    me.realm.toLowerCase() !== StarterConfig.realms[StarterConfig.MFRealm - 1].toLowerCase() && ControlAction.changeRealm(StarterConfig.MFRealm);
                 }
+
+                me.realm.toLowerCase() !== StarterConfig.realms[StarterConfig.MFRealm - 1].toLowerCase() && ControlAction.changeRealm(StarterConfig.MFRealm);
 
                 if (lastGameStatus === "pending") {
                     gameCount += 1;

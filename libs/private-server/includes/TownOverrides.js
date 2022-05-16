@@ -509,6 +509,10 @@ Town.setTownMode = function () {
     if (typeof this.act[me.act - 1].actionTownMode === "undefined" || this.act[me.act - 1].actionTownMode.name !== possibleTownModes[0].name) {
         actionTownModeChanged = true;
         this.act[me.act - 1].actionTownMode = possibleTownModes[0];
+        if (typeof this.act[me.act - 1].actionTownMode === "undefined") {
+            D2Bot.printToConsole("new unrecorded townMode in " + me.gamename, 9);
+            quit();
+        }
         const config = townConfig["act" + me.act.toString()][this.act[me.act - 1].actionTownMode.name];
         this.resetSpotsByConfig(config.resetSpots) && this.setKeyBarrierCoords(config.keyBarrierCoords);
     } else {
@@ -891,5 +895,3 @@ Town.visitTown = function () {
 
     return true;
 };
-
-

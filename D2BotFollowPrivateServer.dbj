@@ -298,8 +298,9 @@ function locationAction() {
 
                 if (!firstLogin) {
                     firstLogin = true;
-                    me.realm.toLowerCase() !== StarterConfig.realms[StarterConfig.MFRealm - 1].toLowerCase() && ControlAction.changeRealm(StarterConfig.MFRealm);
                 }
+
+                me.realm.toLowerCase() !== StarterConfig.realms[StarterConfig.MFRealm - 1].toLowerCase() && ControlAction.changeRealm(StarterConfig.MFRealm);
 
                 if (StarterConfig.JoinChannel !== "") {
                     ControlAction.click(6, 27, 480, 120, 20);
